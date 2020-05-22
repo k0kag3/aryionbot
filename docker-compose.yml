@@ -14,3 +14,4 @@ services:
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       MONGODB_URL: mongodb://mongo:27017/aryionbot
+      DEBUG: aryionbot

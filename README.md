@@ -2,14 +2,27 @@
 
 [Add to Your Discord Server](https://discord.com/oauth2/authorize?client_id=711186798599995432&scope=bot&permissions=18432)
 
-## Start
+## Usage
+
+### Start
 
 ```shell
-docker-compose up -d --build
-docker-compose down
+yarn dc:start
 ```
 
-### Logging
+### Stop
+
+```shell
+yarn dc:stop
+```
+
+### Update
+
+```shell
+yarn dc:update
+```
+
+### Show logs
 
 ```shell
 docker-compose logs -f
@@ -17,11 +30,13 @@ docker-compose logs -f
 
 ## Dev
 
+### Launch dev server
+
 ```shell
-docker-compose -f docker-compose.development.yml up --build
+yarn dc:dev
 ```
 
-## Cleanup
+### Cleanup
 
 ```shell
 docker-compose down --rmi local

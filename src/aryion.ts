@@ -39,16 +39,16 @@ export async function getItemDetail(itemID: string): Promise<Item> {
   const itemEndpoint = `https://aryion.com/g4/view/${itemID}`;
   const document = await getDOM(itemEndpoint);
 
-  const ogpImageURL = document
-    .querySelector('meta[name="twitter:image"]')!
-    .getAttribute('content')!;
+  const ogpImageURL = document.querySelector<HTMLMetaElement>(
+    'meta[name="twitter:image"]',
+  )!.content;
 
-  const imageURL = document
-    .querySelector('meta[property="og:image:secure_url"]')!
-    .getAttribute('content')!;
+  const imageURL = document.querySelector<HTMLMetaElement>(
+    'meta[property="og:image:secure_url"]',
+  )!.content;
 
   const authorAvatarURL =
-    'https:' + document.querySelector('.avatar')!.getAttribute('src')!;
+    'https:' + document.querySelector<HTMLImageElement>('.avatar')!.src;
 
   return {
     ogpImageURL,
@@ -65,9 +65,8 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
     document.querySelectorAll('.detail-item'),
   ).map((element) => ({
     itemID: element
-      .querySelector('.iteminfo a')!
-      .getAttribute('href')!
-      .replace('/g4/view/', ''),
+      .querySelector<HTMLAnchorElement>('.iteminfo a')!
+      .href.replace('/g4/view/', ''),
     title: element.querySelector('.iteminfo a')!.textContent!,
     created: formatISO(
       parse(
@@ -77,9 +76,9 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
       ),
     ),
     author: element.querySelector('.user-link')!.textContent!,
-    authorURL: `https://aryion.com${element
-      .querySelector('.user-link')!
-      .getAttribute('href')}`,
+    authorURL: `https://aryion.com${
+      element.querySelector<HTMLAnchorElement>('.user-link')!.href
+    }`,
     tags: Array.from(element.querySelectorAll('.taglist > a')).map(
       (link) => link.textContent!,
     ),
@@ -87,9 +86,9 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
       .textContent!,
     detailURL:
       'https://aryion.com' +
-      element.querySelector('.iteminfo a')!.getAttribute('href'),
+      element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
     thumbnailURL:
-      'https:' + element.querySelector('.thumb > img')!.getAttribute('src')!,
+      'https:' + element.querySelector<HTMLImageElement>('.thumb > img')!.src,
   }));
   return latestUpdates;
 }

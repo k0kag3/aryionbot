@@ -1,180 +1,128 @@
 import Discord, {TextChannel} from 'discord.js';
+import mongoose from 'mongoose';
 import assert from 'assert';
 import parseISO from 'date-fns/parseISO';
 import formatISO from 'date-fns/formatISO';
 import isBefore from 'date-fns/isBefore';
-import subDays from 'date-fns/subDays';
-import mongoose from 'mongoose';
 
-import {getLatestUpdates, getItemDetail, userExists} from './aryion';
-import WatchModel from './models/watch';
+import {getLatestUpdates, getItemDetail, Item, Update} from './aryion';
+import WatchModel, {Watch} from './models/watch';
+import {commands} from './commands';
+import {log} from './util';
+import {SilentError} from './errors';
 
-export interface Item {
-  ogpImageURL: string;
-  imageURL: string;
-  authorAvatarURL: string;
-}
-
-class DuplicatedWatchError extends Error {}
-class AryionUserNotFoundError extends Error {}
-
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-assert(DISCORD_TOKEN, 'DISCORD_TOKEN is missing');
-const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost:27017/test';
 const PREFIX = '!aryion ';
 const CHECK_INTERVAL = 1000 * 60 * 10;
 
-const client = new Discord.Client();
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+assert(DISCORD_TOKEN, 'DISCORD_TOKEN is missing');
+const MONGODB_URL = process.env.MONGODB_URL;
+assert(MONGODB_URL, 'MONGODB_URL is missing');
 
 mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-async function watchUser(
-  aryionUsername: string,
-  channelID: string,
-  authorID: string,
-) {
-  if (await WatchModel.exists({aryionUsername, channelID})) {
-    throw new DuplicatedWatchError();
-  }
-
-  if (!(await userExists(aryionUsername))) {
-    throw new AryionUserNotFoundError();
-  }
-
-  const watch = new WatchModel({
-    aryionUsername,
-    channelID,
-    lastUpdate: formatISO(subDays(new Date(), 3)),
-    createdBy: authorID,
-  });
-  console.log(watch);
-  return await watch.save();
-}
-
-async function unwatchUser(aryionUsername: string, channelID: string) {
-  const watch = await WatchModel.findOne({aryionUsername, channelID});
-  if (watch) {
-    await watch.remove();
-  }
-}
-
-async function checkUpdates() {
-  const watches = await WatchModel.find();
-  console.log('Start checking updates', new Date());
-  console.log('num of watches', watches.length);
-
-  for (const watch of watches) {
-    console.log('Check for', watch.aryionUsername);
-    const latestUpdates = await getLatestUpdates(watch.aryionUsername);
-    for (const update of latestUpdates) {
-      if (
-        watch.lastUpdate &&
-        isBefore(parseISO(update.created), parseISO(watch.lastUpdate))
-      ) {
-        continue;
-      }
-
-      console.log('New update found', update.detailURL);
-
-      const item = await getItemDetail(update.itemID);
-      const embed = new Discord.MessageEmbed()
-        .setTitle(update.title)
-        .setURL(update.detailURL)
-        .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
-        .setThumbnail(update.thumbnailURL)
-        .setDescription(update.shortDescription)
-        .addField('Tags', update.tags.slice(0, 8).join(' ') + ' [omitted]')
-        .setImage(item.imageURL)
-        .setTimestamp(parseISO(update.created));
-      const channel = client.channels.cache.get(watch.channelID) as TextChannel;
-      channel.send(embed);
-    }
-
-    watch.lastUpdate = formatISO(new Date());
-    await watch.save();
-  }
-}
-
-process.on('unhandledRejection', (error) =>
-  console.error('Uncaught Promise Rejection', error),
-);
-
-client.once('ready', () => {
-  console.log('ready', CHECK_INTERVAL);
-  setInterval(checkUpdates, CHECK_INTERVAL);
-  checkUpdates();
-});
-
-client.on('message', async (message) => {
+async function checkPermission(message: Discord.Message) {
   if (message.channel.type !== 'text') {
-    return;
+    throw new SilentError();
   }
 
   const hasPermisson = message.channel
     .permissionsFor(message.author)
     ?.has('MANAGE_CHANNELS');
+
   if (!hasPermisson) {
-    return;
+    throw new Error("You don't have enough permission.");
+  }
+}
+
+function createEmbedMessage(update: Update, item: Item) {
+  return new Discord.MessageEmbed()
+    .setTitle(update.title)
+    .setURL(update.detailURL)
+    .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
+    .setThumbnail(update.thumbnailURL)
+    .setDescription(update.shortDescription)
+    .addField('Tags', update.tags.slice(0, 8).join(' ') + ' [omitted]')
+    .setImage(item.imageURL)
+    .setTimestamp(parseISO(update.created));
+}
+
+async function checkUpdate(watch: Watch) {
+  log('Check for', watch.aryionUsername);
+
+  const updates = await getLatestUpdates(watch.aryionUsername);
+  for (const update of updates) {
+    if (
+      watch.lastUpdate &&
+      isBefore(parseISO(update.created), parseISO(watch.lastUpdate))
+    ) {
+      continue;
+    }
+
+    log('New update found', update.detailURL);
+
+    const item = await getItemDetail(update.itemID);
+    const embed = createEmbedMessage(update, item);
+
+    const channel = client.channels.cache.get(watch.channelID) as TextChannel;
+    channel.send(embed);
   }
 
-  if (message.content.startsWith(PREFIX)) {
-    const input = message.content.slice(PREFIX.length).split(' ');
-    const authorID = message.author.id;
-    const channelID = message.channel.id;
-    const command = input.shift();
-    const commandArgs = input;
+  watch.lastUpdate = formatISO(new Date());
+  await watch.save();
+}
 
-    console.log(`command: ${command} [${input}]`);
+async function checkUpdates() {
+  log('Start checking updates', new Date());
 
-    switch (command) {
-      // !aryion watch kokage
-      case 'watch': {
-        if (commandArgs.length < 1) {
-          return;
-        }
-        for (const aryionUsername of commandArgs) {
-          try {
-            const watch = await watchUser(aryionUsername, channelID, authorID);
-            await message.reply(`${watch.aryionUsername} added to the watch.`);
-          } catch (err) {
-            if (err instanceof DuplicatedWatchError) {
-              return await message.reply(
-                `${aryionUsername} has already been watched`,
-              );
-            } else if (err instanceof AryionUserNotFoundError) {
-              return await message.reply(
-                `${aryionUsername} cannot be found on Eka's Portal`,
-              );
-            }
-            console.log(err);
-            await message.reply(`Unhandled error occured! Tell the admin.`);
-          }
-        }
-        break;
+  const watches = await WatchModel.find();
+  log('num of watches', watches.length);
+
+  for (const watch of watches) {
+    await checkUpdate(watch);
+  }
+}
+
+process.on('unhandledRejection', (error) =>
+  log('Uncaught Promise Rejection', error),
+);
+
+const client = new Discord.Client();
+
+client.once('ready', () => {
+  log('ready', CHECK_INTERVAL);
+
+  setInterval(checkUpdates, CHECK_INTERVAL);
+  checkUpdates();
+});
+
+client.on('message', async (message) => {
+  try {
+    if (message.content.startsWith(PREFIX)) {
+      await checkPermission(message);
+
+      const input = message.content.slice(PREFIX.length).split(' ');
+      const commandName = input.shift()!;
+      const args = input;
+      log(`command: ${commandName} [${input}]`);
+
+      const command = commands.find(
+        (command) => command.command === commandName,
+      );
+      if (!command) {
+        throw new Error(`Unrecognized command: ${commandName}`);
       }
-      // !aryion unwatch kokage
-      case 'unwatch': {
-        if (commandArgs.length < 1) {
-          return;
-        }
-        for (const aryionUsername of commandArgs) {
-          try {
-            await unwatchUser(aryionUsername, channelID);
-            await message.reply(`${aryionUsername} has been removed`);
-          } catch (err) {
-            console.log(err);
-            await message.reply(`Unhandled error occured! Tell the admin.`);
-          }
-        }
-        break;
-      }
-      default: {
-        await message.reply(`Unrecognized command: ${command}`);
-      }
+
+      await command.handler({message, command: commandName, args});
     }
+  } catch (err) {
+    log(err);
+
+    if (err instanceof SilentError) return;
+    await message.reply(err.message);
   }
 });
 

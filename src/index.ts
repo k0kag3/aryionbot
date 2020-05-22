@@ -113,6 +113,13 @@ client.on('message', async (message) => {
     return;
   }
 
+  const hasPermisson = message.channel
+    .permissionsFor(message.author)
+    ?.has('MANAGE_CHANNELS');
+  if (!hasPermisson) {
+    return;
+  }
+
   if (message.content.startsWith(PREFIX)) {
     const input = message.content.slice(PREFIX.length).split(' ');
     const authorID = message.author.id;

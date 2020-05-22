@@ -28,6 +28,13 @@ async function getDOM(endpoint: string) {
   return document;
 }
 
+export async function userExists(username: string) {
+  const res = await fetch(`https://aryion.com/g4/user/${username}`, {
+    method: 'HEAD',
+  });
+  return res.ok;
+}
+
 export async function getItemDetail(itemID: string): Promise<Item> {
   const itemEndpoint = `https://aryion.com/g4/view/${itemID}`;
   const document = await getDOM(itemEndpoint);

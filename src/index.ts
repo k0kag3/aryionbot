@@ -3,9 +3,10 @@ import assert from 'assert';
 import parseISO from 'date-fns/parseISO';
 import formatISO from 'date-fns/formatISO';
 import isBefore from 'date-fns/isBefore';
+import subDays from 'date-fns/subDays';
 import mongoose from 'mongoose';
 
-import {getLatestUpdates, getItemDetail} from './aryion';
+import {getLatestUpdates, getItemDetail, userExists} from './aryion';
 import WatchModel from './models/watch';
 
 export interface Item {
@@ -15,6 +16,7 @@ export interface Item {
 }
 
 class DuplicatedWatchError extends Error {}
+class AryionUserNotFoundError extends Error {}
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN is missing');
@@ -42,15 +44,17 @@ async function watchUser(
   authorID: string,
 ) {
   if (await WatchModel.exists({aryionUsername, channelID})) {
-    throw new DuplicatedWatchError(
-      `${aryionUsername} has already been added to the watchlist`,
-    );
+    throw new DuplicatedWatchError();
   }
+
+  if (!(await userExists(aryionUsername))) {
+    throw new AryionUserNotFoundError();
+  }
+
   const watch = new WatchModel({
     aryionUsername,
     channelID,
-    lastUpdate: formatISO(new Date()),
-    // lastUpdate: formatISO(new Date(2020, 4, 15)),
+    lastUpdate: formatISO(subDays(new Date(), 3)),
     createdBy: authorID,
   });
   return await watch.save();
@@ -80,7 +84,7 @@ async function checkUpdates() {
         .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
         .setThumbnail(update.thumbnailURL)
         .setDescription(update.shortDescription)
-        .addField('Tags', update.tags.slice(0, 8).join(' ') + ' [omit]')
+        .addField('Tags', update.tags.slice(0, 8).join(' ') + ' [omitted]')
         .setImage(item.imageURL)
         .setTimestamp(parseISO(update.created));
       const channel = client.channels.cache.get(watch.channelID) as TextChannel;
@@ -123,20 +127,23 @@ client.on('message', async (message) => {
         if (commandArgs.length < 1) {
           return;
         }
-        const aryionUsername = commandArgs[0];
-        try {
-          const watch = await watchUser(aryionUsername, channelID, authorID);
-          await message.reply(
-            `${watch.aryionUsername} added to the watch list!`,
-          );
-        } catch (err) {
-          if (err instanceof DuplicatedWatchError) {
-            return await message.reply(
-              `${aryionUsername} has already been watched`,
-            );
+        for (const aryionUsername of commandArgs) {
+          try {
+            const watch = await watchUser(aryionUsername, channelID, authorID);
+            await message.reply(`${watch.aryionUsername} added to the watch.`);
+          } catch (err) {
+            if (err instanceof DuplicatedWatchError) {
+              return await message.reply(
+                `${aryionUsername} has already been watched`,
+              );
+            } else if (err instanceof AryionUserNotFoundError) {
+              return await message.reply(
+                `${aryionUsername} cannot be found on Eka's Portal`,
+              );
+            }
+            console.log(err);
+            await message.reply(`Unhandled error occured! Tell the admin.`);
           }
-          console.log(err);
-          await message.reply(`Unhandled error occured`);
         }
         break;
       }
@@ -145,9 +152,15 @@ client.on('message', async (message) => {
         if (commandArgs.length < 1) {
           return;
         }
-        const aryionUsername = commandArgs[0];
-        await unwatchUser(aryionUsername, channelID);
-        await message.reply(`${aryionUsername} has been removed`);
+        for (const aryionUsername of commandArgs) {
+          try {
+            await unwatchUser(aryionUsername, channelID);
+            await message.reply(`${aryionUsername} has been removed`);
+          } catch (err) {
+            console.log(err);
+            await message.reply(`Unhandled error occured! Tell the admin.`);
+          }
+        }
         break;
       }
       default: {

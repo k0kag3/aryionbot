@@ -4,6 +4,8 @@
 
 ## Bot Usage
 
+Users authorized to manage the channel can use the following commands (usually Admin and Moderators).
+
 ### `!aryion watch <aryionUsername>`
 
 Monitor the latest updates for a given user and notify the channel when there is a new post on Eka's Portal.
@@ -17,6 +19,8 @@ Unsubscribe notifications from Eka's Portal for a given user.
 Just kick them.
 
 ## Usage (for Admin)
+
+Copy `.env.placeholder` to `.env` and put your Discord bot token in it before starting to use the bot.
 
 ### Start
 

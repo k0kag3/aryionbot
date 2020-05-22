@@ -1,0 +1,9 @@
+.env
+.env.placeholder
+.envrc
+.vscode
+.gitignore
+README.md
+node_modules
+db
+dist

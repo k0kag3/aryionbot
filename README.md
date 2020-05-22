@@ -1,4 +1,4 @@
-# Discord Watchtower
+# Discord AryionBot
 
 [Add to Your Discord Server](https://discord.com/oauth2/authorize?client_id=711186798599995432&scope=bot&permissions=18432)
 

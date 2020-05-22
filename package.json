@@ -6,6 +6,8 @@
     "build": "tsc",
     "dc:dev": "docker-compose -f docker-compose.development.yml up --build",
     "dc:start": "docker-compose up -d --build",
+    "dc:stop": "docker-compose down",
+    "dc:update": "yarn dc:stop && git pull --rebase && yarn dc:start",
     "dev": "nodemon --watch src --exec 'ts-node' src/index.ts",
     "start": "node ."
   },

@@ -22,7 +22,7 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN is missing');
 const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost:27017/test';
 const PREFIX = '!aryion ';
-const CHECK_INTERVAL = 1000 * 60 * 5;
+const CHECK_INTERVAL = 1000 * 60 * 10;
 
 const client = new Discord.Client();
 
@@ -30,13 +30,6 @@ mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
-async function unwatchUser(aryionUsername: string, channelID: string) {
-  const watch = await WatchModel.findOne({aryionUsername, channelID});
-  if (watch) {
-    await watch.remove();
-  }
-}
 
 async function watchUser(
   aryionUsername: string,
@@ -57,12 +50,21 @@ async function watchUser(
     lastUpdate: formatISO(subDays(new Date(), 3)),
     createdBy: authorID,
   });
+  console.log(watch);
   return await watch.save();
 }
 
+async function unwatchUser(aryionUsername: string, channelID: string) {
+  const watch = await WatchModel.findOne({aryionUsername, channelID});
+  if (watch) {
+    await watch.remove();
+  }
+}
+
 async function checkUpdates() {
-  console.log('Start checking updates', new Date());
   const watches = await WatchModel.find();
+  console.log('Start checking updates', new Date());
+  console.log('num of watches', watches.length);
 
   for (const watch of watches) {
     console.log('Check for', watch.aryionUsername);
@@ -101,7 +103,7 @@ process.on('unhandledRejection', (error) =>
 );
 
 client.once('ready', () => {
-  console.log('ready');
+  console.log('ready', CHECK_INTERVAL);
   setInterval(checkUpdates, CHECK_INTERVAL);
   checkUpdates();
 });
@@ -118,8 +120,7 @@ client.on('message', async (message) => {
     const command = input.shift();
     const commandArgs = input;
 
-    console.log(`command: ${command}`);
-    console.log(`commandArgs: ${input}`);
+    console.log(`command: ${command} [${input}]`);
 
     switch (command) {
       // !aryion watch kokage

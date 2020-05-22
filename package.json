@@ -1,9 +1,11 @@
 {
-  "name": "discord-watchtower",
+  "name": "aryionbot",
   "version": "1.0.0",
   "author": "kokage <k0kag3.k0kag3+github@gmail.com>",
   "scripts": {
     "build": "tsc",
+    "dc:dev": "docker-compose -f docker-compose.development.yml up --build",
+    "dc:start": "docker-compose up -d --build",
     "dev": "nodemon --watch src --exec 'ts-node' src/index.ts",
     "start": "node ."
   },

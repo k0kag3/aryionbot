@@ -13,4 +13,4 @@ services:
     command: yarn start
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
-      MONGODB_URL: mongodb://mongo:27017/watchtower
+      MONGODB_URL: mongodb://mongo:27017/aryionbot

@@ -1,8 +1,10 @@
-![Icon](https://raw.githubusercontent.com/k0kag3/aryionbot/master/.github/Icon.png)
+<img width="200" src="https://raw.githubusercontent.com/k0kag3/aryionbot/master/.github/Icon.png" alt="Icon" />
 
-# Discord AryionBot
+# AryionBot
 
-[🚀Add AryionBot to Your Discord Server](https://discord.com/oauth2/authorize?client_id=711186798599995432&scope=bot&permissions=18432)
+a Discord bot that regularly checks for updates on Eka's portal and notifies them to the channel.
+
+[🚀Add AryionBot to your Discord server](https://discord.com/oauth2/authorize?client_id=711186798599995432&scope=bot&permissions=18432)
 
 ## Bot Usage
 

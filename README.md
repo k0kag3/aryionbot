@@ -1,3 +1,5 @@
+![Icon](https://raw.githubusercontent.com/k0kage/aryionbot/master/.github/Icon.png)
+
 # Discord AryionBot
 
 [🚀Add AryionBot to Your Discord Server](https://discord.com/oauth2/authorize?client_id=711186798599995432&scope=bot&permissions=18432)
@@ -12,13 +14,13 @@ Monitor the latest updates for a given user and notify the channel when there is
 
 ### `!aryion unwatch <aryionUsername>`
 
-Unsubscribe notifications from Eka's Portal for a given user.
+Unsubscribe notifications from a given user.
 
 ### Remove bot from your server
 
 Just kick them.
 
-## Usage (for Admin)
+## Deploy your own bot
 
 Copy `.env.placeholder` to `.env` and put your Discord bot token in it before starting to use the bot.
 

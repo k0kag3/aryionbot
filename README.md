@@ -1,4 +1,4 @@
-![Icon](https://raw.githubusercontent.com/k0kage/aryionbot/master/.github/Icon.png)
+![Icon](https://raw.githubusercontent.com/k0kag3/aryionbot/master/.github/Icon.png)
 
 # Discord AryionBot
 

@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
 
 export interface Watch extends mongoose.Document {
-  createdBy: string;
   aryionUsername: string;
   channelID: string;
+  guildID: string;
+  createdBy: string;
   lastUpdate?: string;
 }
 
 const schema = new mongoose.Schema({
-  createdBy: String,
   aryionUsername: String,
   channelID: String,
+  guildID: String,
+  createdBy: String,
   lastUpdate: String,
 });
 

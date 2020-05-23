@@ -6,10 +6,11 @@ import formatISO from 'date-fns/formatISO';
 import isBefore from 'date-fns/isBefore';
 
 import {getLatestUpdates, getItemDetail, Item, Update} from './aryion';
-import WatchModel, {Watch} from './models/watch';
+import {Watch} from './models/watch';
 import {commands} from './commands';
-import {log} from './util';
+import {log, canonicalName} from './util';
 import {SilentError} from './errors';
+import {getWatches, removeWatches} from './database';
 
 const PREFIX = '!aryion ';
 const CHECK_INTERVAL = 1000 * 60 * 10;
@@ -45,44 +46,64 @@ function createEmbedMessage(update: Update, item: Item) {
     .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
     .setThumbnail(update.thumbnailURL)
     .setDescription(update.shortDescription)
-    .addField('Tags', update.tags.slice(0, 8).join(' ') + ' [omitted]')
+    .addField('Tags', update.tags.slice(0, 10).join(' ') + ' [omitted]')
     .setImage(item.imageURL)
     .setTimestamp(parseISO(update.created));
 }
 
-async function checkUpdate(watch: Watch) {
-  log('Check for', watch.aryionUsername);
+async function getUpdatesEmbeds(watch: Watch) {
+  log('getUpdatesEmbeds', canonicalName(watch));
 
   const updates = await getLatestUpdates(watch.aryionUsername);
-  for (const update of updates) {
-    if (
-      watch.lastUpdate &&
-      isBefore(parseISO(update.created), parseISO(watch.lastUpdate))
-    ) {
-      continue;
-    }
 
-    log('New update found', update.detailURL);
+  const embedMessages = (
+    await Promise.all(
+      updates.map(async (update) => {
+        if (
+          watch.lastUpdate &&
+          isBefore(parseISO(update.created), parseISO(watch.lastUpdate))
+        ) {
+          return;
+        }
 
-    const item = await getItemDetail(update.itemID);
-    const embed = createEmbedMessage(update, item);
-
-    const channel = client.channels.cache.get(watch.channelID) as TextChannel;
-    channel.send(embed);
-  }
+        const item = await getItemDetail(update.itemID);
+        const embed = createEmbedMessage(update, item);
+        return embed;
+      }),
+    )
+  ).filter((s): s is Discord.MessageEmbed => s !== undefined);
 
   watch.lastUpdate = formatISO(new Date());
   await watch.save();
+
+  return embedMessages;
 }
 
 async function checkUpdates() {
-  log('Start checking updates', new Date());
+  log('start checking updates', new Date());
 
-  const watches = await WatchModel.find();
+  const watches = await getWatches();
   log('num of watches', watches.length);
 
   for (const watch of watches) {
-    await checkUpdate(watch);
+    const channel = client.channels.cache.get(watch.channelID) as
+      | TextChannel
+      | undefined;
+    if (channel) {
+      // guild migration
+      if (!watch.guildID) {
+        await watch.update({guildID: channel.guild.id});
+      }
+
+      const embeds = await getUpdatesEmbeds(watch);
+      if (embeds.length > 0) {
+        channel.send(embeds);
+      }
+    } else {
+      log(`invalid watch found. delete ${canonicalName(watch)}`);
+      // about to send invalid channel. should be discarded
+      await watch.remove();
+    }
   }
 }
 
@@ -97,6 +118,22 @@ client.once('ready', () => {
 
   setInterval(checkUpdates, CHECK_INTERVAL);
   checkUpdates();
+});
+
+client.on('guildDelete', async (guild) => {
+  log('guildDelete');
+  const invalidWatches = await removeWatches({guildID: guild.id});
+  log(
+    `cleanup watches for guild/${guild.id}, count: ${invalidWatches.deletedCount}`,
+  );
+});
+
+client.on('channelDelete', async (channel) => {
+  log('channelDelete');
+  const invalidWatches = await removeWatches({channelID: channel.id});
+  log(
+    `cleanup watches for channel/${channel.id}, count: ${invalidWatches.deletedCount}`,
+  );
 });
 
 client.on('message', async (message) => {

@@ -47,8 +47,8 @@ export async function getItemDetail(itemID: string): Promise<Item> {
     'meta[property="og:image:secure_url"]',
   )!.content;
 
-  const authorAvatarURL =
-    'https:' + document.querySelector<HTMLImageElement>('.avatar')!.src;
+  const authorAvatarURL = document.querySelector<HTMLImageElement>('.avatar')!
+    .src;
 
   return {
     ogpImageURL,
@@ -66,7 +66,7 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
   ).map((element) => ({
     itemID: element
       .querySelector<HTMLAnchorElement>('.iteminfo a')!
-      .href.replace('/g4/view/', ''),
+      .href.replace('https://aryion.com/g4/view/', ''),
     title: element.querySelector('.iteminfo a')!.textContent!,
     created: formatISO(
       parse(
@@ -76,19 +76,14 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
       ),
     ),
     author: element.querySelector('.user-link')!.textContent!,
-    authorURL: `https://aryion.com${
-      element.querySelector<HTMLAnchorElement>('.user-link')!.href
-    }`,
+    authorURL: element.querySelector<HTMLAnchorElement>('.user-link')!.href,
     tags: Array.from(element.querySelectorAll('.taglist > a')).map(
       (link) => link.textContent!,
     ),
     shortDescription: element.querySelector('.iteminfo > p:nth-last-child(1)')!
       .textContent!,
-    detailURL:
-      'https://aryion.com' +
-      element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
-    thumbnailURL:
-      'https:' + element.querySelector<HTMLImageElement>('.thumb > img')!.src,
+    detailURL: element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
+    thumbnailURL: element.querySelector<HTMLImageElement>('.thumb > img')!.src,
   }));
   return latestUpdates;
 }

@@ -6,9 +6,18 @@ import WatchModel from './models/watch';
 import {DuplicatedWatchError, AryionUserNotFoundError} from './errors';
 import {log} from './util';
 
+export async function getWatches(options: any = {}) {
+  return await WatchModel.find(options);
+}
+
+export async function removeWatches(options: any) {
+  return await WatchModel.deleteMany(options);
+}
+
 export async function watchUser(
   aryionUsername: string,
   channelID: string,
+  guildID: string,
   authorID: string,
 ) {
   if (await WatchModel.exists({aryionUsername, channelID})) {
@@ -24,8 +33,9 @@ export async function watchUser(
   const watch = new WatchModel({
     aryionUsername,
     channelID,
-    lastUpdate: formatISO(subDays(new Date(), 3)),
+    guildID,
     createdBy: authorID,
+    lastUpdate: formatISO(subDays(new Date(), 3)),
   });
   log(watch);
   return await watch.save();

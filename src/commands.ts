@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
 
-import {watchUser, unwatchUser} from './database';
+import {watchUser, unwatchUser, getWatches} from './database';
 
 export interface HandlerOptions {
   message: Discord.Message;
@@ -17,7 +17,7 @@ export interface Command {
   handler: Handler;
 }
 
-export const handleWatch: Handler = async function ({message, args}) {
+const handleWatch: Handler = async function ({message, args}) {
   if (args.length < 1) {
     throw new Error('Not enough arguments.');
   }
@@ -26,13 +26,14 @@ export const handleWatch: Handler = async function ({message, args}) {
     const watch = await watchUser(
       aryionUsername,
       message.channel.id,
+      message.guild!.id,
       message.author.id,
     );
     await message.reply(`${watch.aryionUsername} added to the watch.`);
   }
 };
 
-export const handleUnwatch: Handler = async function ({message, args}) {
+const handleUnwatch: Handler = async function ({message, args}) {
   if (args.length < 1) {
     throw new Error('Not enough arguments.');
   }
@@ -43,7 +44,16 @@ export const handleUnwatch: Handler = async function ({message, args}) {
   }
 };
 
+const handleStatus: Handler = async function ({message}) {
+  const channelID = message.channel.id;
+  const watches = await getWatches({channelID});
+  let body = `${watches.length} watches\n`;
+  watches.map((watch) => (body += `- ${watch.aryionUsername}\n`)),
+    await message.reply(body);
+};
+
 export const commands: Command[] = [
   {command: 'watch', handler: handleWatch},
   {command: 'unwatch', handler: handleUnwatch},
+  {command: 'status', handler: handleStatus},
 ];

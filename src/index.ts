@@ -5,7 +5,13 @@ import parseISO from 'date-fns/parseISO';
 import formatISO from 'date-fns/formatISO';
 import isBefore from 'date-fns/isBefore';
 
-import {getLatestUpdates, getItemDetail, Item, Update} from './aryion';
+import {
+  getLatestUpdates,
+  getItemDetail,
+  Item,
+  ImageItem,
+  Update,
+} from './aryion';
 import {Watch} from './models/watch';
 import {commands} from './commands';
 import {log, canonicalName} from './util';
@@ -39,16 +45,19 @@ async function checkPermission(message: Discord.Message) {
   }
 }
 
-function createEmbedMessage(update: Update, item: Item) {
-  return new Discord.MessageEmbed()
+function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
+  const embed = new Discord.MessageEmbed()
     .setTitle(update.title)
     .setURL(update.detailURL)
     .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
     .setThumbnail(update.thumbnailURL)
     .setDescription(update.shortDescription)
     .addField('Tags', update.tags.slice(0, 10).join(' ') + ' [omitted]')
-    .setImage(item.imageURL)
     .setTimestamp(parseISO(update.created));
+  if (item.type === 'image') {
+    embed.setImage(item.imageURL);
+  }
+  return embed;
 }
 
 async function getUpdatesEmbeds(watch: Watch) {

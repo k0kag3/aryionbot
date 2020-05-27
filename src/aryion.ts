@@ -15,11 +15,21 @@ export interface Update {
   thumbnailURL: string;
 }
 
-export interface Item {
-  ogpImageURL: string;
-  imageURL: string;
+export interface IItem {
   authorAvatarURL: string;
 }
+
+export interface ImageItem extends IItem {
+  ogpImageURL: string;
+  imageURL: string;
+  type: 'image';
+}
+
+export interface StoryItem extends IItem {
+  type: 'story';
+}
+
+export type Item = ImageItem | StoryItem;
 
 async function getDOM(endpoint: string) {
   const {
@@ -39,22 +49,38 @@ export async function getItemDetail(itemID: string): Promise<Item> {
   const itemEndpoint = `https://aryion.com/g4/view/${itemID}`;
   const document = await getDOM(itemEndpoint);
 
-  const ogpImageURL = document.querySelector<HTMLMetaElement>(
-    'meta[name="twitter:image"]',
-  )!.content;
-
-  const imageURL = document.querySelector<HTMLMetaElement>(
-    'meta[property="og:image:secure_url"]',
-  )!.content;
+  const itemTag = document.querySelector('#item-itself')!.tagName;
 
   const authorAvatarURL = document.querySelector<HTMLImageElement>('.avatar')!
     .src;
 
-  return {
-    ogpImageURL,
-    imageURL,
-    authorAvatarURL,
-  };
+  switch (itemTag) {
+    case 'IMG': {
+      const ogpImageURL = document.querySelector<HTMLMetaElement>(
+        'meta[name="twitter:image"]',
+      )!.content;
+
+      const imageURL = document.querySelector<HTMLMetaElement>(
+        'meta[property="og:image:secure_url"]',
+      )!.content;
+
+      return {
+        ogpImageURL,
+        imageURL,
+        authorAvatarURL,
+        type: 'image',
+      } as ImageItem;
+    }
+    case 'IFRAME': {
+      return {
+        authorAvatarURL,
+        type: 'story',
+      } as StoryItem;
+    }
+    default: {
+      throw new Error('Invalid item type found');
+    }
+  }
 }
 
 export async function getLatestUpdates(username: string): Promise<Update[]> {

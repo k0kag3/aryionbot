@@ -122,20 +122,22 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
         '.iteminfo > p:nth-last-child(1)',
       )!.textContent!,
       detailURL: element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
-      thumbnailURL: element.querySelector<HTMLImageElement>('.thumb > img')!
-        .src,
     };
 
     const thumbnail = element.querySelector<HTMLImageElement>('.thumb > img');
     if (thumbnail) {
-      return {...update, type: 'image' as const, thumbnailURL: thumbnail.src};
+      return {
+        ...update,
+        type: 'image' as const,
+        thumbnailURL: thumbnail.src,
+      } as ImageUpdate;
     }
     const previewElement = element.querySelector<HTMLAnchorElement>('a.thumb')!;
     return {
       ...update,
       type: 'story' as const,
       previewText: previewElement.textContent!,
-    };
+    } as StoryUpdate;
   });
   return latestUpdates;
 }

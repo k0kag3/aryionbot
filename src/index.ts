@@ -50,10 +50,16 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
     .setTitle(update.title)
     .setURL(update.detailURL)
     .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
-    .setThumbnail(update.thumbnailURL)
     .setDescription(update.shortDescription)
     .addField('Tags', update.tags.slice(0, 10).join(' ') + ' [omitted]')
     .setTimestamp(parseISO(update.created));
+
+  if (update.type === 'image') {
+    embed.setThumbnail(update.thumbnailURL);
+  } else {
+    embed.addField('Preview', update.previewText);
+  }
+
   if (item.type === 'image') {
     embed.setImage(item.imageURL);
   }

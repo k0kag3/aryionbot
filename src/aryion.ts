@@ -3,7 +3,7 @@ import {JSDOM} from 'jsdom';
 import parse from 'date-fns/parse';
 import formatISO from 'date-fns/formatISO';
 
-export interface Update {
+export interface BaseUpdate {
   itemID: string;
   title: string;
   created: string;
@@ -12,8 +12,19 @@ export interface Update {
   tags: string[];
   shortDescription: string;
   detailURL: string;
+}
+
+export interface ImageUpdate extends BaseUpdate {
+  type: 'image';
   thumbnailURL: string;
 }
+
+export interface StoryUpdate extends BaseUpdate {
+  type: 'story';
+  previewText: string;
+}
+
+export type Update = ImageUpdate | StoryUpdate;
 
 export interface IItem {
   authorAvatarURL: string;
@@ -89,27 +100,42 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
   const document = await getDOM(latestUpdatesEndpoint);
   const latestUpdates = Array.from(
     document.querySelectorAll('.detail-item'),
-  ).map((element) => ({
-    itemID: element
-      .querySelector<HTMLAnchorElement>('.iteminfo a')!
-      .href.replace('https://aryion.com/g4/view/', ''),
-    title: element.querySelector('.iteminfo a')!.textContent!,
-    created: formatISO(
-      parse(
-        element.querySelector('.pretty-date')!.getAttribute('title')!,
-        'MMM do, yyyy hh:mm aa',
-        new Date(),
+  ).map((element) => {
+    const update = {
+      itemID: element
+        .querySelector<HTMLAnchorElement>('.iteminfo a')!
+        .href.replace('https://aryion.com/g4/view/', ''),
+      title: element.querySelector('.iteminfo a')!.textContent!,
+      created: formatISO(
+        parse(
+          element.querySelector('.pretty-date')!.getAttribute('title')!,
+          'MMM do, yyyy hh:mm aa',
+          new Date(),
+        ),
       ),
-    ),
-    author: element.querySelector('.user-link')!.textContent!,
-    authorURL: element.querySelector<HTMLAnchorElement>('.user-link')!.href,
-    tags: Array.from(element.querySelectorAll('.taglist > a')).map(
-      (link) => link.textContent!,
-    ),
-    shortDescription: element.querySelector('.iteminfo > p:nth-last-child(1)')!
-      .textContent!,
-    detailURL: element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
-    thumbnailURL: element.querySelector<HTMLImageElement>('.thumb > img')!.src,
-  }));
+      author: element.querySelector('.user-link')!.textContent!,
+      authorURL: element.querySelector<HTMLAnchorElement>('.user-link')!.href,
+      tags: Array.from(element.querySelectorAll('.taglist > a')).map(
+        (link) => link.textContent!,
+      ),
+      shortDescription: element.querySelector(
+        '.iteminfo > p:nth-last-child(1)',
+      )!.textContent!,
+      detailURL: element.querySelector<HTMLAnchorElement>('.iteminfo a')!.href,
+      thumbnailURL: element.querySelector<HTMLImageElement>('.thumb > img')!
+        .src,
+    };
+
+    const thumbnail = element.querySelector<HTMLImageElement>('.thumb > img');
+    if (thumbnail) {
+      return {...update, type: 'image' as const, thumbnailURL: thumbnail.src};
+    }
+    const previewElement = element.querySelector<HTMLAnchorElement>('a.thumb')!;
+    return {
+      ...update,
+      type: 'story' as const,
+      previewText: previewElement.textContent!,
+    };
+  });
   return latestUpdates;
 }

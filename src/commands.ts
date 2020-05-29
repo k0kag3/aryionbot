@@ -1,6 +1,5 @@
 import Discord from 'discord.js';
-
-import {watchUser, unwatchUser, getWatches} from './database';
+import {subscribe, getSubscriptions, unsubscribe} from './database';
 
 export interface HandlerOptions {
   message: Discord.Message;
@@ -17,43 +16,42 @@ export interface Command {
   handler: Handler;
 }
 
-const handleWatch: Handler = async function ({message, args}) {
+const handleSubscribe: Handler = async function ({message, args}) {
   if (args.length < 1) {
     throw new Error('Not enough arguments.');
   }
 
   for (const aryionUsername of args) {
-    const watch = await watchUser(
+    const sub = await subscribe(
       aryionUsername,
       message.channel.id,
       message.guild!.id,
-      message.author.id,
     );
-    await message.reply(`${watch.aryionUsername} added to the watch.`);
+    await message.reply(`subscribed ${sub.aryionUser.username}.`);
   }
 };
 
-const handleUnwatch: Handler = async function ({message, args}) {
+const handleUnsubscribe: Handler = async function ({message, args}) {
   if (args.length < 1) {
     throw new Error('Not enough arguments.');
   }
 
   for (const aryionUsername of args) {
-    await unwatchUser(aryionUsername, message.channel.id);
+    await unsubscribe(aryionUsername, message.channel.id);
     await message.reply(`${aryionUsername} has been removed`);
   }
 };
 
-const handleStatus: Handler = async function ({message}) {
+const handleList: Handler = async function ({message}) {
   const channelID = message.channel.id;
-  const watches = await getWatches({channelID});
-  let body = `${watches.length} watches\n`;
-  watches.map((watch) => (body += `- ${watch.aryionUsername}\n`)),
+  const subs = await getSubscriptions({channelID});
+  let body = `${subs.length} subscriptions\n`;
+  subs.map((sub) => (body += `- ${sub.aryionUser.username}\n`)),
     await message.reply(body);
 };
 
 export const commands: Command[] = [
-  {command: 'watch', handler: handleWatch},
-  {command: 'unwatch', handler: handleUnwatch},
-  {command: 'status', handler: handleStatus},
+  {command: 'subscribe', handler: handleSubscribe},
+  {command: 'unsubscribe', handler: handleUnsubscribe},
+  {command: 'list', handler: handleList},
 ];

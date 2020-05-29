@@ -1,4 +1,4 @@
-<img width="200" src="https://raw.githubusercontent.com/k0kag3/aryionbot/master/.github/Icon.png" alt="Icon" />
+<img width="200" src="https://raw.githubusercontent.com/k0kag3/aryionbot/master/assets/Icon.png" alt="Icon" />
 
 # AryionBot
 
@@ -10,13 +10,17 @@ a Discord bot that regularly checks for updates on Eka's portal and notifies the
 
 Users authorized to manage the channel can use the following commands (usually Admin and Moderators).
 
-### `!aryion watch <aryionUsername>`
+### `!aryion subscribe <aryionUsername>`
 
 Monitor the latest updates for a given user and notify the channel when there is a new post on Eka's Portal.
 
-### `!aryion unwatch <aryionUsername>`
+### `!aryion unsubscribe <aryionUsername>`
 
 Unsubscribe notifications from a given user.
+
+### `!aryion list`
+
+List subscriptions.
 
 ### Remove bot from your server
 

@@ -15,5 +15,7 @@ services:
       - ./src:/usr/local/app/src
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
+      ARYION_BOT_PREFIX: ${ARYION_BOT_PREFIX}
+      ARYION_BOT_INTERVAL: ${ARYION_BOT_INTERVAL}
       MONGODB_URL: mongodb://mongo:27017/aryionbot
       DEBUG: aryionbot

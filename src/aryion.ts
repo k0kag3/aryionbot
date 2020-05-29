@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import {JSDOM} from 'jsdom';
 import parse from 'date-fns/parse';
 import formatISO from 'date-fns/formatISO';
+import {AryionUserNotFoundError} from './errors';
 
 export interface BaseUpdate {
   itemID: string;
@@ -26,17 +27,17 @@ export interface StoryUpdate extends BaseUpdate {
 
 export type Update = ImageUpdate | StoryUpdate;
 
-export interface IItem {
+export interface BaseItem {
   authorAvatarURL: string;
 }
 
-export interface ImageItem extends IItem {
+export interface ImageItem extends BaseItem {
   ogpImageURL: string;
   imageURL: string;
   type: 'image';
 }
 
-export interface StoryItem extends IItem {
+export interface StoryItem extends BaseItem {
   type: 'story';
 }
 
@@ -49,11 +50,22 @@ async function getDOM(endpoint: string) {
   return document;
 }
 
-export async function userExists(username: string) {
-  const res = await fetch(`https://aryion.com/g4/user/${username}`, {
-    method: 'HEAD',
-  });
-  return res.ok;
+export async function getUser(aryionUsername: string) {
+  const document = await getDOM(`https://aryion.com/g4/user/${aryionUsername}`);
+
+  if (
+    document.querySelector<HTMLSpanElement>('.g-box-title')!.textContent ===
+    'User Not Found'
+  ) {
+    throw new AryionUserNotFoundError();
+  }
+
+  const username = document.querySelector<HTMLAnchorElement>(
+    '#uph-namesummary a.user-link',
+  )!.textContent!;
+  const avatar = document.querySelector<HTMLImageElement>('.avatar')!.src;
+
+  return {username, avatar};
 }
 
 export async function getItemDetail(itemID: string): Promise<Item> {

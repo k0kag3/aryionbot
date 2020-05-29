@@ -9,6 +9,9 @@
     "dc:stop": "docker-compose down",
     "dc:update": "yarn dc:stop && git pull --rebase && yarn dc:start",
     "dev": "nodemon --watch src --exec 'ts-node' src/index.ts",
+    "dump": "docker-compose exec -T mongo mongodump --archive > db.dump",
+    "migrate": "docker-compose run -T bot yarn ts-node ./src/scripts/migrate.ts",
+    "restore": "docker-compose exec -T mongo mongorestore --archive < db.dump",
     "start": "node .",
     "test": "jest"
   },

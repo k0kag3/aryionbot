@@ -1,8 +1,8 @@
 import debug from 'debug';
-import {Watch} from './models/watch';
+import {Subscription} from './models/subscription';
 
 export const log = debug('aryionbot');
 
-export function canonicalName(watch: Watch) {
-  return `${watch.guildID}:${watch.channelID}/${watch.aryionUsername}`;
+export function canonicalName(sub: Subscription) {
+  return `${sub.guildId}:${sub.channelId}/${sub.aryionUser.username}`;
 }

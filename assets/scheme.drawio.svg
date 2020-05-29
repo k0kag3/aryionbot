@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="561px" height="404px" viewBox="-0.5 -0.5 561 404" content="&lt;mxfile host=&quot;&quot; modified=&quot;2020-05-29T04:25:53.094Z&quot; agent=&quot;5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.45.1 Chrome/78.0.3904.130 Electron/7.2.4 Safari/537.36&quot; etag=&quot;vN16tX8uSb30W1hvJYeK&quot; version=&quot;13.1.3&quot;&gt;&lt;diagram id=&quot;6hGFLwfOUW9BJ-s0fimq&quot; name=&quot;Page-1&quot;&gt;7Vlbb9owFP41kdoXRBIC7SOErq3UbtNQtWeTGGLNsSPbDOiv33Hs3Eig6co0TUOqKvvz8bHP7fNp6vhhursXKEueeYyp4w3jnePPHc8LgjH81sDeABM3MMBakNhAbgUsyCu24NCiGxJj2RBUnFNFsiYYccZwpBoYEoJvm2IrTpunZmiNW8AiQrSNfiexSgx6400q/AGTdVKc7I5vzUqKCmFriUxQzLc1yL9z/FBwrswo3YWYat8VfjH7Ph1ZLS8mMFN9Nvhmw09EN9a2xWYpI0EyRTizd1T7wnC5JSlFDGazFWdqYVdcmCNK1gzGEZyMBQA/sVAEfDa1C4pngEYJofET2vONvp9UKPpRzGYJF+QV1CJqdcKyUDb83rghsdA7AR4CKrAEma+F0e4B9Ix2DcEnJJUFIk4pyiRZlmakSKwJm3GleGqF2j61btYW4l0Nsj6+xzzFSuxBxK6ObLj3zem2Sh53bLGkljg3FkM2X9el4iqkMLBR7Y7wqBVhx5vldaCI9sMUxlMzBhd7vmtM1iJRgqB+6GNspKQShK1bUlCMND6UOcgbcJPK4yn4DxxyyiFB5oybRCKUHkBFLlG8UkczSWYogrOecpn5qEK+WQdqiMPeFc0rLCFxjJnOAq6QQibk2oyME6ZyDwcz+AGfh8NB4ARw8RDmbjWHHy0uVMgZ2IJInhAY8mmLtS87UsXvnSo2N7xxv9wIRh/PjUkrN6ZiD3X/IqGCL7V/ntr/m8V/c6T4GUrxyaKm4KeXLEbqtNgmF7nUfnftT3qnyl+o/aKXquXGC5Pm8V9iWHhALKb9eWD44QLvSIZ/teYPSr4MYi2wZX3XAzs5Q827biuw7qB68KEh1Jh98wcrwuIvDF85k9kGWD8nhsn8ulbpnt5c7woHAqdQW3pLoTNsdwsR3CdXdKGDIouGvdPoOB90ps3oHHwQtNImTDDUnDc0D4G8cMKHOMEf9yCFUUd03XN0Au74CCvkUi1KuGoxAAgOVlzcoSi5alLJeG3yveoNQs+Zwp2H+QkMbx8VTmV5jNb/2YBXVZ9x3aUgPxn+ileEbfSbRFZaITda9dwobm/09UZ4zZ7qlNcgsdzKisKanFfqGdX0lObD/G3bm06YExlxEQ8kNqee3HFiYEnWNlyb5aBg3ZyhflPpkusPMdNGrN6n6UL0DWoIenPDCaLvpIKzdH63LSpYXPq+P9H3lY/1Ww94+RZ8JK7FN8V3NX5fRCgw0O9bDWCN89o8eqCnH3vUesc+4lV72XeH+TA1Py3cNLV4NgYSQYP7/3Jaq2g7auO2d3G8s5t1/feTHEyrj+b5Wu0/D/7dLw==&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs>
+        <clipPath id="mx-clip-4-31-152-54-0">
+            <rect x="4" y="31" width="152" height="54"/>
+        </clipPath>
+        <clipPath id="mx-clip-204-31-152-54-0">
+            <rect x="204" y="31" width="152" height="54"/>
+        </clipPath>
+        <clipPath id="mx-clip-4-151-272-44-0">
+            <rect x="4" y="151" width="272" height="44"/>
+        </clipPath>
+        <clipPath id="mx-clip-324-151-232-154-0">
+            <rect x="324" y="151" width="232" height="154"/>
+        </clipPath>
+        <clipPath id="mx-clip-4-271-272-134-0">
+            <rect x="4" y="271" width="272" height="134"/>
+        </clipPath>
+    </defs>
+    <g>
+        <path d="M 0 26 L 0 0 L 160 0 L 160 26" fill="#ffffff" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 0 26 L 0 80 L 160 80 L 160 26" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 0 26 L 160 26" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="#000000" font-family="Helvetica" font-weight="bold" text-anchor="middle" font-size="12px">
+            <text x="79.5" y="17.5">
+                Subscription
+            </text>
+        </g>
+        <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-4-31-152-54-0)" font-size="12px">
+            <text x="5.5" y="43.5">
+                + artist: Artist
+            </text>
+            <text x="5.5" y="57.5">
+                + channelId: string
+            </text>
+            <text x="5.5" y="71.5">
+                + guildId: string
+            </text>
+        </g>
+        <path d="M 200 26 L 200 0 L 360 0 L 360 26" fill="#ffffff" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 200 26 L 200 80 L 360 80 L 360 26" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 200 26 L 360 26" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="#000000" font-family="Helvetica" font-weight="bold" text-anchor="middle" font-size="12px">
+            <text x="279.5" y="17.5">
+                AryionUser
+            </text>
+        </g>
+        <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-204-31-152-54-0)" font-size="12px">
+            <text x="205.5" y="43.5">
+                + name: string
+            </text>
+            <text x="205.5" y="57.5">
+                + lastUpdate: string
+            </text>
+            <text x="205.5" y="71.5">
+                + updated: string
+            </text>
+        </g>
+        <path d="M 0 146 L 0 120 L 280 120 L 280 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 0 146 L 0 190 L 280 190 L 280 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 0 146 L 280 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="139.5" y="137.5">
+                Unsubscribe Handler
+            </text>
+        </g>
+        <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-4-151-272-44-0)" font-size="12px">
+            <text x="5.5" y="163.5">
+                1. artist = Artist.findOne({username})
+            </text>
+            <text x="5.5" y="177.5">
+                2. Subscription.remove({artist, channelId: cid})
+            </text>
+        </g>
+        <path d="M 320 146 L 320 120 L 560 120 L 560 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 320 146 L 320 300 L 560 300 L 560 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 320 146 L 560 146" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="439.5" y="137.5">
+                Check Updates Handler
+            </text>
+        </g>
+        <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-324-151-232-154-0)" font-size="12px">
+            <text x="325.5" y="163.5">
+                1. all = Artist.find()
+            </text>
+            <text x="325.5" y="177.5">
+                2. all.forEach(artist =&gt;
+            </text>
+            <text x="325.5" y="191.5">
+                  1. newItems = findNewItem(lastUpdate)
+            </text>
+            <text x="325.5" y="205.5">
+                  2. continue if no new items
+            </text>
+            <text x="325.5" y="219.5">
+                  3. subList = Subscription.find({artist})
+            </text>
+            <text x="325.5" y="233.5">
+                  4. subList.forEach(sub =&gt;
+            </text>
+            <text x="325.5" y="247.5">
+                    1. Discord.send({
+            </text>
+            <text x="325.5" y="261.5">
+                          channel: sub.channelID,
+            </text>
+            <text x="325.5" y="275.5">
+                          body: newItems
+            </text>
+            <text x="325.5" y="289.5">
+                        })
+            </text>
+        </g>
+        <path d="M 0 266 L 0 240 L 280 240 L 280 266" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 0 266 L 0 400 L 280 400 L 280 266" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 0 266 L 280 266" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="139.5" y="257.5">
+                Subscribe Handler
+            </text>
+        </g>
+        <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-4-271-272-134-0)" font-size="12px">
+            <text x="5.5" y="283.5">
+                1. artist = Artist.findOneOrCreate({username})
+            </text>
+            <text x="5.5" y="297.5">
+                2. sub = Subscription.findOneOrCreate({
+            </text>
+            <text x="5.5" y="311.5">
+                      artist,
+            </text>
+            <text x="5.5" y="325.5">
+                      channelId,
+            </text>
+            <text x="5.5" y="339.5">
+                      guildID
+            </text>
+            <text x="5.5" y="353.5">
+                    })
+            </text>
+            <text x="5.5" y="367.5">
+                3. sub.save()
+            </text>
+        </g>
+    </g>
+</svg>

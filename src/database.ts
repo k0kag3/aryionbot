@@ -1,49 +1,66 @@
 import formatISO from 'date-fns/formatISO';
 import subDays from 'date-fns/subDays';
 
-import {userExists} from './aryion';
-import WatchModel from './models/watch';
-import {DuplicatedWatchError, AryionUserNotFoundError} from './errors';
+import {getUser} from './aryion';
+import SubscriptionModel from './models/subscription';
+import AryionUserModel from './models/aryionUser';
+import {DuplicatedSubscriptionError, AryionUserNotFoundError} from './errors';
 import {log} from './util';
 
-export async function getWatches(options: any = {}) {
-  return await WatchModel.find(options);
+export async function getSubscriptions(options: any = {}) {
+  return await SubscriptionModel.find(options);
 }
 
-export async function removeWatches(options: any) {
-  return await WatchModel.deleteMany(options);
+export async function getAryionUsers(options: any = {}) {
+  return await AryionUserModel.find(options);
 }
 
-export async function watchUser(
+export async function subscribe(
   aryionUsername: string,
   channelID: string,
   guildID: string,
-  authorID: string,
 ) {
-  if (await WatchModel.exists({aryionUsername, channelID})) {
-    throw new DuplicatedWatchError(
-      `${aryionUsername} has already been watched`,
+  const {username} = await getUser(aryionUsername);
+
+  let aryionUser =
+    (await AryionUserModel.findOne({username})) ||
+    (await AryionUserModel.create({username}));
+
+  if (await SubscriptionModel.exists({aryionUser, channelID})) {
+    throw new DuplicatedSubscriptionError(
+      `${username} has already been subscribed`,
     );
   }
-  if (!(await userExists(aryionUsername))) {
-    throw new AryionUserNotFoundError(
-      `${aryionUsername} cannot be found on Eka's Portal`,
-    );
-  }
-  const watch = new WatchModel({
-    aryionUsername,
+
+  // rewind 3 days back
+  const lastUpdate = formatISO(subDays(new Date(), 3));
+  const sub = new SubscriptionModel({
+    aryionUser,
     channelID,
     guildID,
-    createdBy: authorID,
-    lastUpdate: formatISO(subDays(new Date(), 3)),
+    lastUpdate,
   });
-  log(watch);
-  return await watch.save();
+  log(sub);
+  return await sub.save();
 }
 
-export async function unwatchUser(aryionUsername: string, channelID: string) {
-  const watch = await WatchModel.findOne({aryionUsername, channelID});
-  if (watch) {
-    await watch.remove();
+export async function unsubscribe(aryionUsername: string, channelID: string) {
+  const aryionUser = await AryionUserModel.findOne({username: aryionUsername});
+  if (!aryionUser) throw new AryionUserNotFoundError();
+
+  const sub = await SubscriptionModel.findOne({
+    aryionUser,
+    channelID,
+  });
+  if (sub) {
+    await sub.remove();
   }
+}
+
+export async function removeSubscriptionForChannel(channelId: string) {
+  return await SubscriptionModel.deleteMany({channelId});
+}
+
+export async function removeSubscriptionForGuild(guildId: string) {
+  return await SubscriptionModel.deleteMany({guildId});
 }

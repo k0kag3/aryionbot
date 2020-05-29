@@ -5,21 +5,22 @@ import parseISO from 'date-fns/parseISO';
 import formatISO from 'date-fns/formatISO';
 import isBefore from 'date-fns/isBefore';
 
-import {
-  getLatestUpdates,
-  getItemDetail,
-  Item,
-  ImageItem,
-  Update,
-} from './aryion';
-import {Watch} from './models/watch';
+import {getLatestUpdates, getItemDetail, Item, Update} from './aryion';
 import {commands} from './commands';
 import {log, canonicalName} from './util';
 import {SilentError} from './errors';
-import {getWatches, removeWatches} from './database';
+import {
+  getSubscriptions,
+  removeSubscriptionForGuild,
+  removeSubscriptionForChannel,
+  getAryionUsers,
+} from './database';
+import {AryionUser} from './models/aryionUser';
 
-const PREFIX = '!aryion ';
-const CHECK_INTERVAL = 1000 * 60 * 10;
+const PREFIX = process.env.ARYION_BOT_PREFIX || '!aryion';
+const INTERVAL = process.env.ARYION_BOT_INTERVAL
+  ? parseInt(process.env.ARYION_BOT_INTERVAL)
+  : 1000 * 60 * 10;
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN is missing');
@@ -66,17 +67,15 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
   return embed;
 }
 
-async function getUpdatesEmbeds(watch: Watch) {
-  log('getUpdatesEmbeds', canonicalName(watch));
-
-  const updates = await getLatestUpdates(watch.aryionUsername);
+async function findNewItems(aryionUser: AryionUser) {
+  const updates = await getLatestUpdates(aryionUser.username);
 
   const embedMessages = (
     await Promise.all(
       updates.map(async (update) => {
         if (
-          watch.lastUpdate &&
-          isBefore(parseISO(update.created), parseISO(watch.lastUpdate))
+          aryionUser.lastUpdate &&
+          isBefore(parseISO(update.created), parseISO(aryionUser.lastUpdate))
         ) {
           return;
         }
@@ -88,37 +87,39 @@ async function getUpdatesEmbeds(watch: Watch) {
     )
   ).filter((s): s is Discord.MessageEmbed => s !== undefined);
 
-  watch.lastUpdate = formatISO(new Date());
-  await watch.save();
+  await aryionUser.updateOne({lastUpdate: formatISO(new Date())});
 
   return embedMessages;
 }
 
-async function checkUpdates() {
+async function periodicChecks() {
   log('start checking updates', new Date());
 
-  const watches = await getWatches();
-  log('num of watches', watches.length);
+  const allAryionUsers = await getAryionUsers();
+  console.log('users', allAryionUsers.length);
 
-  for (const watch of watches) {
-    const channel = client.channels.cache.get(watch.channelID) as
-      | TextChannel
-      | undefined;
-    if (channel) {
-      // guild migration
-      if (!watch.guildID) {
-        await watch.update({guildID: channel.guild.id});
-      }
+  for (const aryionUser of allAryionUsers) {
+    console.log(aryionUser.username);
 
-      const embeds = await getUpdatesEmbeds(watch);
-      if (embeds.length > 0) {
-        channel.send(embeds);
-      }
-    } else {
-      log(`invalid watch found. delete ${canonicalName(watch)}`);
-      // about to send invalid channel. should be discarded
-      await watch.remove();
-    }
+    const newItems = await findNewItems(aryionUser);
+    if (newItems.length === 0) continue;
+
+    console.log('newItems', newItems.length);
+
+    const subs = await getSubscriptions({aryionUser});
+    await Promise.all(
+      subs.map(async (sub) => {
+        const channel = client.channels.cache.get(sub.channelId) as
+          | TextChannel
+          | undefined;
+        if (!channel) {
+          log(`invalid subscription found. delete ${canonicalName(sub)}`);
+          return await sub.remove();
+        }
+
+        return channel.send(newItems);
+      }),
+    );
   }
 }
 
@@ -129,25 +130,25 @@ process.on('unhandledRejection', (error) =>
 const client = new Discord.Client();
 
 client.once('ready', () => {
-  log('ready', CHECK_INTERVAL);
+  log('ready', INTERVAL);
 
-  setInterval(checkUpdates, CHECK_INTERVAL);
-  checkUpdates();
+  setInterval(periodicChecks, INTERVAL);
+  periodicChecks();
 });
 
 client.on('guildDelete', async (guild) => {
   log('guildDelete');
-  const invalidWatches = await removeWatches({guildID: guild.id});
+  const invalidSubs = await removeSubscriptionForGuild(guild.id);
   log(
-    `cleanup watches for guild/${guild.id}, count: ${invalidWatches.deletedCount}`,
+    `cleanup subscriptions for guild/${guild.id}, count: ${invalidSubs.deletedCount}`,
   );
 });
 
 client.on('channelDelete', async (channel) => {
   log('channelDelete');
-  const invalidWatches = await removeWatches({channelID: channel.id});
+  const invalidSubs = await removeSubscriptionForChannel(channel.id);
   log(
-    `cleanup watches for channel/${channel.id}, count: ${invalidWatches.deletedCount}`,
+    `cleanup subscriptions for channel/${channel.id}, count: ${invalidSubs.deletedCount}`,
   );
 });
 
@@ -156,7 +157,7 @@ client.on('message', async (message) => {
     if (message.content.startsWith(PREFIX)) {
       await checkPermission(message);
 
-      const input = message.content.slice(PREFIX.length).split(' ');
+      const input = message.content.slice(PREFIX.length + 1).split(' ');
       const commandName = input.shift()!;
       const args = input;
       log(`command: ${commandName} [${input}]`);

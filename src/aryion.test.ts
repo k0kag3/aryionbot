@@ -7,13 +7,13 @@ it('can fetch story', async () => {
 });
 
 it('can fetch canonical username', async () => {
-  const user = await aryion.getUser('KoKaGe');
+  const user = await aryion.verifyUser('KoKaGe');
   console.log(user);
   expect(user.username).toBe('kokage');
 });
 
 it('return error then fetching invalid user', async () => {
-  expect(aryion.getUser('wajfowaijfwoafjaif')).rejects.toThrow(
+  expect(aryion.verifyUser('wajfowaijfwoafjaif')).rejects.toThrow(
     AryionUserNotFoundError,
   );
 });

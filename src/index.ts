@@ -7,13 +7,13 @@ import isBefore from 'date-fns/isBefore';
 
 import {getLatestUpdates, getItemDetail, Item, Update} from './aryion';
 import {commands} from './commands';
-import {log, canonicalName} from './util';
+import {log, debugNameForSub} from './util';
 import {SilentError} from './errors';
 import {
-  getSubscriptions,
+  getSubscriptionsForUser,
   removeSubscriptionForGuild,
   removeSubscriptionForChannel,
-  getAryionUsers,
+  getAllAryionUsers,
 } from './database';
 import {AryionUser} from './models/aryionUser';
 
@@ -55,15 +55,18 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
     .addField('Tags', update.tags.slice(0, 10).join(' ') + ' [omitted]')
     .setTimestamp(parseISO(update.created));
 
-  if (update.type === 'image') {
-    embed.setThumbnail(update.thumbnailURL);
-  } else {
+  if (update.previewUrl) {
+    embed.setThumbnail(update.previewUrl);
+  }
+
+  if (update.previewText) {
     embed.addField('Preview', update.previewText);
   }
 
   if (item.type === 'image') {
     embed.setImage(item.imageURL);
   }
+
   return embed;
 }
 
@@ -80,7 +83,7 @@ async function findNewItems(aryionUser: AryionUser) {
           return;
         }
 
-        const item = await getItemDetail(update.itemID);
+        const item = await getItemDetail(update.itemId);
         const embed = createEmbedMessage(update, item);
         return embed;
       }),
@@ -95,29 +98,31 @@ async function findNewItems(aryionUser: AryionUser) {
 async function periodicChecks() {
   log('start checking updates', new Date());
 
-  const allAryionUsers = await getAryionUsers();
+  const allAryionUsers = await getAllAryionUsers();
   console.log('users', allAryionUsers.length);
 
   for (const aryionUser of allAryionUsers) {
-    console.log(aryionUser.username);
+    console.log(aryionUser.id, aryionUser.username);
 
     const newItems = await findNewItems(aryionUser);
     if (newItems.length === 0) continue;
 
     console.log('newItems', newItems.length);
 
-    const subs = await getSubscriptions({aryionUser});
+    const subs = await getSubscriptionsForUser(aryionUser);
     await Promise.all(
       subs.map(async (sub) => {
         const channel = client.channels.cache.get(sub.channelId) as
           | TextChannel
           | undefined;
         if (!channel) {
-          log(`invalid subscription found. delete ${canonicalName(sub)}`);
+          log(`invalid subscription found. delete ${debugNameForSub(sub)}`);
           return await sub.remove();
         }
 
-        return channel.send(newItems);
+        for (const item of newItems) {
+          await channel.send(item);
+        }
       }),
     );
   }

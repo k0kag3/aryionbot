@@ -1,9 +1,10 @@
 import assert from 'assert';
 import mongoose from 'mongoose';
 import WatchModel from '../models/watch';
-import AryionUserModel from '../models/aryionUser';
+import AryionUserModel, {AryionUser} from '../models/aryionUser';
 import SubscriptionModel from '../models/subscription';
-import {getUser} from '../aryion';
+import {verifyUser} from '../aryion';
+import {canonicalId} from '../util';
 
 console.log('v1');
 
@@ -18,12 +19,18 @@ async function main() {
   for (const watch of watches) {
     console.log('watch', watch);
 
-    const {username} = await getUser(watch.aryionUsername);
+    const {username, avatarUrl} = await verifyUser(watch.aryionUsername);
+    const id = canonicalId(watch.aryionUsername);
     const aryionUser =
       (await AryionUserModel.findOne({
-        username,
+        id,
       })) ||
-      (await AryionUserModel.create({username, lastUpdate: watch.lastUpdate}));
+      (await AryionUserModel.create({
+        id,
+        username,
+        avatarUrl,
+        lastUpdate: watch.lastUpdate,
+      } as AryionUser));
     console.log('aryionUser', aryionUser);
 
     const sub = await SubscriptionModel.create({

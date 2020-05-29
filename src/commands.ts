@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import {subscribe, getSubscriptions, unsubscribe} from './database';
+import {subscribe, unsubscribe, getSubscriptionsForChannel} from './database';
 
 export interface HandlerOptions {
   message: Discord.Message;
@@ -43,11 +43,14 @@ const handleUnsubscribe: Handler = async function ({message, args}) {
 };
 
 const handleList: Handler = async function ({message}) {
-  const channelID = message.channel.id;
-  const subs = await getSubscriptions({channelID});
+  const channelId = message.channel.id;
+  const subs = await getSubscriptionsForChannel(channelId);
   let body = `${subs.length} subscriptions\n`;
-  subs.map((sub) => (body += `- ${sub.aryionUser.username}\n`)),
-    await message.reply(body);
+  subs.map((sub) => {
+    console.log(sub);
+    body += `- ${sub.aryionUser.username}\n`;
+  });
+  await message.reply(body);
 };
 
 export const commands: Command[] = [

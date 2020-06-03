@@ -14,6 +14,7 @@ import {
   removeSubscriptionForGuild,
   removeSubscriptionForChannel,
   getAllAryionUsers,
+  unsubscribe,
 } from './database';
 import {AryionUser} from './models/aryionUser';
 
@@ -117,7 +118,7 @@ async function periodicChecks() {
           | undefined;
         if (!channel) {
           log(`invalid subscription found. delete ${debugNameForSub(sub)}`);
-          return await sub.remove();
+          return await unsubscribe(aryionUser.id, sub.channelId);
         }
 
         for (const item of newItems) {

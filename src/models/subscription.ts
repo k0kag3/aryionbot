@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import {AryionUser} from './aryionUser';
+import mongoose from "mongoose";
+import { AryionUser } from "./aryionUser";
 
 export interface Subscription extends mongoose.Document {
   channelId: string;
@@ -8,15 +8,15 @@ export interface Subscription extends mongoose.Document {
 }
 
 const schema = new mongoose.Schema({
-  channelId: {type: String, required: true},
-  guildId: {type: String, required: true},
+  channelId: { type: String, required: true },
+  guildId: { type: String, required: true },
   aryionUser: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'AryionUser',
+    ref: "AryionUser",
     required: true,
   },
 });
 
-const SubscriptionModel = mongoose.model<Subscription>('Subscription', schema);
+const SubscriptionModel = mongoose.model<Subscription>("Subscription", schema);
 
 export default SubscriptionModel;

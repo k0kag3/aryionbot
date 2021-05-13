@@ -1,15 +1,15 @@
-version: '3.1'
+version: "3.1"
 
 services:
   mongo:
-    image: mongo:4.2.6
-    restart: always
+    image: mongo:4
+    restart: unless-stopped
     volumes:
       - ./db:/data/db
 
   bot:
     build: .
-    restart: always
+    restart: unless-stopped
     command: yarn start
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}

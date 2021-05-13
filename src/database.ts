@@ -1,29 +1,29 @@
-import formatISO from 'date-fns/formatISO';
-import subDays from 'date-fns/subDays';
+import formatISO from "date-fns/formatISO";
+import subDays from "date-fns/subDays";
 
-import {verifyUser} from './aryion';
-import SubscriptionModel from './models/subscription';
-import AryionUserModel, {AryionUser} from './models/aryionUser';
-import {DuplicatedSubscriptionError, AryionUserNotFoundError} from './errors';
-import {log, canonicalId} from './util';
+import { verifyUser } from "./aryion";
+import SubscriptionModel from "./models/subscription";
+import AryionUserModel, { AryionUser } from "./models/aryionUser";
+import { DuplicatedSubscriptionError, AryionUserNotFoundError } from "./errors";
+import { log, canonicalId } from "./util";
 
 export async function cleanUpOrphanedUsers() {
   const allUsers = await AryionUserModel.find();
   await Promise.all(
     allUsers.map(async (user) => {
-      if (await SubscriptionModel.findOne({aryionUser: user})) return;
-      console.log('Remove orphaned user', user.username);
+      if (await SubscriptionModel.findOne({ aryionUser: user })) return;
+      console.log("Remove orphaned user", user.username);
       return user.remove();
-    }),
+    })
   );
 }
 
 export async function getSubscriptionsForUser(aryionUser: AryionUser) {
-  return await SubscriptionModel.find({aryionUser}).populate('aryionUser');
+  return await SubscriptionModel.find({ aryionUser }).populate("aryionUser");
 }
 
 export async function getSubscriptionsForChannel(channelId: string) {
-  return await SubscriptionModel.find({channelId}).populate('aryionUser');
+  return await SubscriptionModel.find({ channelId }).populate("aryionUser");
 }
 
 export async function getAllAryionUsers() {
@@ -32,7 +32,7 @@ export async function getAllAryionUsers() {
 
 export async function findAryionUser(aryionUsername: string) {
   const id = canonicalId(aryionUsername);
-  return await AryionUserModel.findOne({id});
+  return await AryionUserModel.findOne({ id });
 }
 
 export async function findOrCreateAryionUser(aryionUsername: string) {
@@ -41,7 +41,7 @@ export async function findOrCreateAryionUser(aryionUsername: string) {
   const aryionUser = await findAryionUser(id);
   if (aryionUser) return aryionUser;
 
-  const {username, avatarUrl} = await verifyUser(aryionUsername);
+  const { username, avatarUrl } = await verifyUser(aryionUsername);
   const newAryionUser = await AryionUserModel.create({
     id,
     username,
@@ -55,10 +55,10 @@ export async function findOrCreateAryionUser(aryionUsername: string) {
 export async function subscribe(
   aryionUsername: string,
   channelId: string,
-  guildId: string,
+  guildId: string
 ) {
   const aryionUser = await findOrCreateAryionUser(aryionUsername);
-  if (await SubscriptionModel.exists({aryionUser, channelId})) {
+  if (await SubscriptionModel.exists({ aryionUser, channelId })) {
     throw new DuplicatedSubscriptionError(aryionUsername);
   }
 
@@ -79,24 +79,24 @@ export async function unsubscribe(aryionUsername: string, channelId: string) {
     aryionUser,
     channelId,
   });
-  if (!sub) throw new Error('There is not subscription found');
+  if (!sub) throw new Error("There is not subscription found");
 
   await sub.remove();
 
-  if (!(await SubscriptionModel.findOne({aryionUser}))) {
-    console.log('Also remove', aryionUser.username);
+  if (!(await SubscriptionModel.findOne({ aryionUser }))) {
+    console.log("Also remove", aryionUser.username);
     await aryionUser.remove();
   }
 }
 
 export async function removeSubscriptionForChannel(channelId: string) {
-  const invalidSubs = await SubscriptionModel.deleteMany({channelId});
+  const invalidSubs = await SubscriptionModel.deleteMany({ channelId });
   await cleanUpOrphanedUsers();
   return invalidSubs;
 }
 
 export async function removeSubscriptionForGuild(guildId: string) {
-  const invalidSubs = await SubscriptionModel.deleteMany({guildId});
+  const invalidSubs = await SubscriptionModel.deleteMany({ guildId });
   await cleanUpOrphanedUsers();
   return invalidSubs;
 }

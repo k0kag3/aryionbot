@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export interface AryionUser extends mongoose.Document {
   id: string;
@@ -8,12 +8,12 @@ export interface AryionUser extends mongoose.Document {
 }
 
 const schema = new mongoose.Schema({
-  id: {type: String, required: true, unique: true},
-  username: {type: String, required: true},
-  avatarUrl: {type: String, required: true},
-  lastUpdate: {type: String},
+  id: { type: String, required: true, unique: true },
+  username: { type: String, required: true },
+  avatarUrl: { type: String, required: true },
+  lastUpdate: { type: String },
 });
 
-const AryionUserModel = mongoose.model<AryionUser>('AryionUser', schema);
+const AryionUserModel = mongoose.model<AryionUser>("AryionUser", schema);
 
 export default AryionUserModel;

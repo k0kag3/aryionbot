@@ -1,5 +1,5 @@
-import Discord from 'discord.js';
-import {subscribe, unsubscribe, getSubscriptionsForChannel} from './database';
+import Discord from "discord.js";
+import { subscribe, unsubscribe, getSubscriptionsForChannel } from "./database";
 
 export interface HandlerOptions {
   message: Discord.Message;
@@ -16,24 +16,24 @@ export interface Command {
   handler: Handler;
 }
 
-const handleSubscribe: Handler = async function ({message, args}) {
+const handleSubscribe: Handler = async function ({ message, args }) {
   if (args.length < 1) {
-    throw new Error('Not enough arguments.');
+    throw new Error("Not enough arguments.");
   }
 
   for (const aryionUsername of args) {
     const sub = await subscribe(
       aryionUsername,
       message.channel.id,
-      message.guild!.id,
+      message.guild!.id
     );
     await message.reply(`subscribed ${sub.aryionUser.username}.`);
   }
 };
 
-const handleUnsubscribe: Handler = async function ({message, args}) {
+const handleUnsubscribe: Handler = async function ({ message, args }) {
   if (args.length < 1) {
-    throw new Error('Not enough arguments.');
+    throw new Error("Not enough arguments.");
   }
 
   for (const aryionUsername of args) {
@@ -42,7 +42,7 @@ const handleUnsubscribe: Handler = async function ({message, args}) {
   }
 };
 
-const handleList: Handler = async function ({message}) {
+const handleList: Handler = async function ({ message }) {
   const channelId = message.channel.id;
   const subs = await getSubscriptionsForChannel(channelId);
   let body = `${subs.length} subscriptions\n`;
@@ -54,7 +54,7 @@ const handleList: Handler = async function ({message}) {
 };
 
 export const commands: Command[] = [
-  {command: 'subscribe', handler: handleSubscribe},
-  {command: 'unsubscribe', handler: handleUnsubscribe},
-  {command: 'list', handler: handleList},
+  { command: "sub", handler: handleSubscribe },
+  { command: "unsub", handler: handleUnsubscribe },
+  { command: "list", handler: handleList },
 ];

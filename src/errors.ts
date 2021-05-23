@@ -14,13 +14,4 @@ export class DuplicatedSubscriptionError extends CustomError {
   }
 }
 
-export class AryionUserNotFoundError extends CustomError {
-  username: string;
-
-  constructor(username: string) {
-    super(`User not found: ${username}`);
-    this.username = username;
-  }
-}
-
 export class SilentError extends CustomError {}

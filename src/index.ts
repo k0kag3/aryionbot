@@ -1,22 +1,21 @@
-import Discord, { TextChannel } from "discord.js";
-import mongoose from "mongoose";
+import { getItemDetail, getLatestUpdates, Item, Update } from "aryjs";
 import assert from "assert";
-import parseISO from "date-fns/parseISO";
 import formatISO from "date-fns/formatISO";
 import isBefore from "date-fns/isBefore";
-
-import { getLatestUpdates, getItemDetail, Item, Update } from "./aryion";
+import parseISO from "date-fns/parseISO";
+import Discord, { TextChannel } from "discord.js";
+import mongoose from "mongoose";
 import { commands } from "./commands";
-import { log, debugNameForSub } from "./util";
-import { SilentError } from "./errors";
 import {
-  getSubscriptionsForUser,
-  removeSubscriptionForGuild,
-  removeSubscriptionForChannel,
   getAllAryionUsers,
+  getSubscriptionsForUser,
+  removeSubscriptionForChannel,
+  removeSubscriptionForGuild,
   unsubscribe,
 } from "./database";
+import { SilentError } from "./errors";
 import { AryionUser } from "./models/aryionUser";
+import { debugNameForSub, log } from "./util";
 
 const PREFIX = process.env.ARYION_BOT_PREFIX || "!aryion";
 const INTERVAL = process.env.ARYION_BOT_INTERVAL
@@ -50,8 +49,8 @@ async function checkPermission(message: Discord.Message) {
 function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
   const embed = new Discord.MessageEmbed()
     .setTitle(update.title)
-    .setURL(update.detailURL)
-    .setAuthor(update.author, item.authorAvatarURL, update.authorURL)
+    .setURL(update.detailUrl)
+    .setAuthor(update.author, item.authorAvatarUrl, update.authorUrl)
     .setDescription(update.shortDescription)
     .addField("Tags", update.tags.slice(0, 10).join(" ") + " [omitted]")
     .setTimestamp(parseISO(update.created));
@@ -65,18 +64,18 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
   }
 
   if (item.type === "image") {
-    embed.setImage(item.imageURL);
+    embed.setImage(item.images.original);
   }
 
   return embed;
 }
 
 async function findNewItems(aryionUser: AryionUser) {
-  const updates = await getLatestUpdates(aryionUser.username);
+  const res = await getLatestUpdates(aryionUser.username);
 
   const embedMessages = (
     await Promise.all(
-      updates.map(async (update) => {
+      res.updates.map(async (update) => {
         if (
           aryionUser.lastUpdate &&
           isBefore(parseISO(update.created), parseISO(aryionUser.lastUpdate))

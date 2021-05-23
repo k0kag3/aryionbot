@@ -1,11 +1,10 @@
+import { AryionUserNotFoundError, verifyUser } from "aryjs";
 import formatISO from "date-fns/formatISO";
 import subDays from "date-fns/subDays";
-
-import { verifyUser } from "./aryion";
-import SubscriptionModel from "./models/subscription";
+import { DuplicatedSubscriptionError } from "./errors";
 import AryionUserModel, { AryionUser } from "./models/aryionUser";
-import { DuplicatedSubscriptionError, AryionUserNotFoundError } from "./errors";
-import { log, canonicalId } from "./util";
+import SubscriptionModel from "./models/subscription";
+import { canonicalId, log } from "./util";
 
 export async function cleanUpOrphanedUsers() {
   const allUsers = await AryionUserModel.find();

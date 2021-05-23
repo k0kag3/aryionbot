@@ -21,7 +21,7 @@ import { AryionUser } from "./models/aryionUser";
 const PREFIX = process.env.ARYION_BOT_PREFIX || "!aryion";
 const INTERVAL = process.env.ARYION_BOT_INTERVAL
   ? parseInt(process.env.ARYION_BOT_INTERVAL)
-  : 1000 * 60 * 10;
+  : 1000 * 60 * 60;
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 assert(DISCORD_TOKEN, "DISCORD_TOKEN is missing");
@@ -38,11 +38,11 @@ async function checkPermission(message: Discord.Message) {
     throw new SilentError();
   }
 
-  const hasPermisson = message.channel
+  const hasPermission = message.channel
     .permissionsFor(message.author)
     ?.has("MANAGE_CHANNELS");
 
-  if (!hasPermisson) {
+  if (!hasPermission) {
     throw new Error("You don't have enough permission.");
   }
 }

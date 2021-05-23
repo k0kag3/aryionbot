@@ -69,8 +69,8 @@ export async function getItemDetail(itemId: string): Promise<Item> {
 
   const itemTag = document.querySelector("#item-itself")!.tagName;
 
-  const authorAvatarURL = document.querySelector<HTMLImageElement>(".avatar")!
-    .src;
+  const authorAvatarURL =
+    document.querySelector<HTMLImageElement>(".avatar")!.src;
 
   switch (itemTag) {
     case "IMG": {
@@ -116,50 +116,44 @@ export async function getLatestUpdates(username: string): Promise<Update[]> {
   const document = await getDOM(latestUpdatesEndpoint);
   const latestUpdates = Array.from(
     document.querySelectorAll(".detail-item")
-  ).map(
-    (element): Update => {
-      const update = {
-        itemId: element
-          .querySelector<HTMLAnchorElement>(".iteminfo a")!
-          .href.replace("https://aryion.com/g4/view/", ""),
-        title: element.querySelector(".iteminfo a")!.textContent!,
-        created: formatISO(
-          parse(
-            element.querySelector(".pretty-date")!.getAttribute("title")!,
-            "MMM do, yyyy hh:mm aa",
-            new Date()
-          )
-        ),
-        author: element.querySelector(".user-link")!.textContent!,
-        authorURL: element.querySelector<HTMLAnchorElement>(".user-link")!.href,
-        tags: Array.from(element.querySelectorAll(".taglist > a")).map(
-          (link) => link.textContent!
-        ),
-        shortDescription: element.querySelector(
-          ".iteminfo > p:nth-last-child(1)"
-        )!.textContent!,
-        detailURL: element.querySelector<HTMLAnchorElement>(".iteminfo a")!
-          .href,
-      } as Update;
+  ).map((element): Update => {
+    const update = {
+      itemId: element
+        .querySelector<HTMLAnchorElement>(".iteminfo a")!
+        .href.replace("https://aryion.com/g4/view/", ""),
+      title: element.querySelector(".iteminfo a")!.textContent!,
+      created: formatISO(
+        parse(
+          element.querySelector(".pretty-date")!.getAttribute("title")!,
+          "MMM do, yyyy hh:mm aa",
+          new Date()
+        )
+      ),
+      author: element.querySelector(".user-link")!.textContent!,
+      authorURL: element.querySelector<HTMLAnchorElement>(".user-link")!.href,
+      tags: Array.from(element.querySelectorAll(".taglist > a")).map(
+        (link) => link.textContent!
+      ),
+      shortDescription: element.querySelector(
+        ".iteminfo > p:nth-last-child(1)"
+      )!.textContent!,
+      detailURL: element.querySelector<HTMLAnchorElement>(".iteminfo a")!.href,
+    } as Update;
 
-      const thumbnail = element.querySelector<HTMLImageElement>(
-        "a.thumb > img"
-      );
-      // image -> must have thumbnail
-      // story -> may have thumbnail, may have preview text
-      if (thumbnail) {
-        update.previewUrl = thumbnail.src;
-      }
-
-      const previewElement = element.querySelector<HTMLParagraphElement>(
-        "a.thumb > p"
-      );
-      if (previewElement) {
-        update.previewText = previewElement.textContent!;
-      }
-
-      return update;
+    const thumbnail = element.querySelector<HTMLImageElement>("a.thumb > img");
+    // image -> must have thumbnail
+    // story -> may have thumbnail, may have preview text
+    if (thumbnail) {
+      update.previewUrl = thumbnail.src;
     }
-  );
+
+    const previewElement =
+      element.querySelector<HTMLParagraphElement>("a.thumb > p");
+    if (previewElement) {
+      update.previewText = previewElement.textContent!;
+    }
+
+    return update;
+  });
   return latestUpdates;
 }

@@ -30,6 +30,7 @@ assert(MONGODB_URL, "MONGODB_URL is missing");
 mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useCreateIndex: true,
 });
 
 async function checkPermission(message: Discord.Message) {
@@ -96,42 +97,53 @@ async function findNewItems(aryionUser: AryionUser) {
 }
 
 async function periodicChecks() {
-  log("start checking updates", new Date());
+  log("start checking updates");
 
-  const allAryionUsers = await getAllAryionUsers();
-  console.log("users", allAryionUsers.length);
+  try {
+    const allAryionUsers = await getAllAryionUsers();
+    console.log("users", allAryionUsers.length);
 
-  for (const aryionUser of allAryionUsers) {
-    console.log(aryionUser.id, aryionUser.username);
+    for (const aryionUser of allAryionUsers) {
+      const newItems = await findNewItems(aryionUser);
+      if (newItems.length === 0) continue;
 
-    const newItems = await findNewItems(aryionUser);
-    if (newItems.length === 0) continue;
+      console.log(
+        "newItems",
+        aryionUser.id,
+        aryionUser.username,
+        newItems.length
+      );
 
-    console.log("newItems", newItems.length);
+      const subs = await getSubscriptionsForUser(aryionUser);
+      await Promise.all(
+        subs.map(async (sub) => {
+          const channel = await client.channels.fetch(sub.channelId);
+          if (!channel) {
+            console.log(
+              `invalid subscription found. delete ${debugNameForSub(sub)}`
+            );
+            return await unsubscribe(aryionUser.id, sub.channelId);
+          }
 
-    const subs = await getSubscriptionsForUser(aryionUser);
-    await Promise.all(
-      subs.map(async (sub) => {
-        const channel = await client.channels.fetch(sub.channelId);
-        if (!channel) {
-          console.log(
-            `invalid subscription found. delete ${debugNameForSub(sub)}`
-          );
-          return await unsubscribe(aryionUser.id, sub.channelId);
-        }
+          if (!(channel instanceof TextChannel)) {
+            console.log("not TextChannel", channel.type, channel.id);
+            return;
+          }
+          console.log(channel);
 
-        if (!(channel instanceof TextChannel)) {
-          console.log("not TextChannel", channel.type, channel.id);
-          return;
-        }
-
-        console.log("#", channel.name);
-
-        for (const item of newItems) {
-          await channel.send(item);
-        }
-      })
-    );
+          console.log("#", channel.name);
+          for (const item of newItems) {
+            try {
+              await channel.send(item);
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        })
+      );
+    }
+  } catch (err) {
+    console.log(err);
   }
 }
 
@@ -149,17 +161,15 @@ client.once("ready", () => {
 });
 
 client.on("guildDelete", async (guild) => {
-  log("guildDelete");
   const invalidSubs = await removeSubscriptionForGuild(guild.id);
-  log(
+  console.log(
     `cleanup subscriptions for guild/${guild.id}, count: ${invalidSubs.deletedCount}`
   );
 });
 
 client.on("channelDelete", async (channel) => {
-  log("channelDelete");
   const invalidSubs = await removeSubscriptionForChannel(channel.id);
-  log(
+  console.log(
     `cleanup subscriptions for channel/${channel.id}, count: ${invalidSubs.deletedCount}`
   );
 });
@@ -172,7 +182,7 @@ client.on("message", async (message) => {
       const input = message.content.slice(PREFIX.length + 1).split(" ");
       const commandName = input.shift()!;
       const args = input;
-      log(`command: ${commandName} [${input}]`);
+      console.log(`command: ${commandName} [${input}]`);
 
       const command = commands.find(
         (command) => command.command === commandName

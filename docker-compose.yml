@@ -10,10 +10,9 @@ services:
   bot:
     build: .
     restart: unless-stopped
-    command: yarn start
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       ARYION_BOT_PREFIX: ${ARYION_BOT_PREFIX}
       ARYION_BOT_INTERVAL: ${ARYION_BOT_INTERVAL}
       MONGODB_URL: mongodb://mongo:27017/aryionbot
-      DEBUG: aryionbot
+      DEBUG: aryionbot,aryjs

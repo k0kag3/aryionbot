@@ -53,7 +53,7 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
     .setURL(update.detailUrl)
     .setAuthor(update.author, item.authorAvatarUrl, update.authorUrl)
     .setDescription(update.shortDescription)
-    .addField("Tags", update.tags.slice(0, 10).join(" ") + " [omitted]")
+    .addField("Tags", update.tags.slice(0, 10).join(" ") + " [...]")
     .setTimestamp(parseISO(update.created));
 
   if (update.previewUrl) {
@@ -72,11 +72,11 @@ function createEmbedMessage(update: Update, item: Item): Discord.MessageEmbed {
 }
 
 async function findNewItems(aryionUser: AryionUser) {
-  const res = await getLatestUpdates(aryionUser.username);
+  const { updates } = await getLatestUpdates({ username: aryionUser.username });
 
   const embedMessages = (
     await Promise.all(
-      res.updates.map(async (update) => {
+      updates.map(async (update) => {
         if (
           aryionUser.lastUpdate &&
           isBefore(parseISO(update.created), parseISO(aryionUser.lastUpdate))
@@ -99,11 +99,11 @@ async function findNewItems(aryionUser: AryionUser) {
 async function periodicChecks() {
   log("start checking updates");
 
-  try {
-    const allAryionUsers = await getAllAryionUsers();
-    console.log("users", allAryionUsers.length);
+  const allAryionUsers = await getAllAryionUsers();
+  console.log("users", allAryionUsers.length);
 
-    for (const aryionUser of allAryionUsers) {
+  for (const aryionUser of allAryionUsers) {
+    try {
       const newItems = await findNewItems(aryionUser);
       if (newItems.length === 0) continue;
 
@@ -129,27 +129,19 @@ async function periodicChecks() {
             console.log("not TextChannel", channel.type, channel.id);
             return;
           }
-          console.log(channel);
 
-          console.log("#", channel.name);
+          log("#", channel.name);
+
           for (const item of newItems) {
-            try {
-              await channel.send(item);
-            } catch (err) {
-              console.log(err);
-            }
+            await channel.send(item);
           }
         })
       );
+    } catch (err) {
+      console.log(err);
     }
-  } catch (err) {
-    console.log(err);
   }
 }
-
-process.on("unhandledRejection", (error) => {
-  console.log("Uncaught Promise Rejection", error);
-});
 
 const client = new Discord.Client();
 
